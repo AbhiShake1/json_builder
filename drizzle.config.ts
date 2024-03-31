@@ -8,5 +8,5 @@ export default {
   dbCredentials: {
     connectionString: env.DATABASE_URL,
   },
-  tablesFilter: ["json_builder_*"],
+  tablesFilter: ["json_builderr_*"],
 } satisfies Config;

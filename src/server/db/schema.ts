@@ -4,6 +4,7 @@ import {
   integer,
   pgTableCreator,
   primaryKey,
+  serial,
   text,
   timestamp,
   varchar,
@@ -16,35 +17,35 @@ import { type AdapterAccount } from "next-auth/adapters";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `json_builder_${name}`);
+export const createTable = pgTableCreator((name) => `json_builderr_${name}`);
 
 export const organizations = createTable("organization", {
-  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull().unique(),
 });
 
 export const userOrganizations = createTable("user_organization", {
-  id: varchar("id", { length: 255 }).notNull().primaryKey(),
-  userId: varchar("user", { length: 255 }).references(() => users.id),
-  organizationId: varchar("organization", { length: 255 }).references(() => organizations.id),
+  id: serial("id").primaryKey(),
+  userId: varchar("user", { length: 255 }).notNull().references(() => users.id),
+  organizationId: serial("organization").notNull().references(() => organizations.id),
 });
 
 export const projects = createTable("project", {
-  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  organizationId: varchar("organization", { length: 255 }).references(() => organizations.id),
+  organizationId: serial("organization").references(() => organizations.id),
 });
 
 export const components = createTable("component", {
-  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  projectId: varchar("project", { length: 255 }).references(() => projects.id),
+  projectId: serial("project").references(() => projects.id),
 });
 
 export const componentFlavors = createTable("component_flavor", {
-  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  id: serial("id").primaryKey(),
   flavorName: varchar("flavor_name", { length: 255 }).notNull(),
-  componentId: varchar("component", { length: 255 }).references(() => components.id),
+  componentId: serial("component").references(() => components.id),
 });
 
 export const users = createTable("user", {
