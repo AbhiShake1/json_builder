@@ -38,8 +38,19 @@ export function FlutterOutput() {
 
   const title = toTitleCase((schemaJson.title ?? "") as string)
 
-  const type = (schemaJson.type ?? 'dynamic') as keyof typeof dartType
-  const dType = dartType[type]
+  const properties = (schemaJson.properties ?? {}) as Record<string, unknown>
+  const schemaProcessed = Object.entries(properties).map(([key, value]) => {
+    const type = (value as Record<string, unknown>).type as keyof typeof dartType
+    const dType = dartType[type]
+
+    if (Object.keys(primitives).includes(type)) return `'${key}': JsonRendererValidator.ofType(${dType}),`
+    return `
+        'text_style': JsonRendererValidator.fromMap({
+          'font_style': JsonRendererValidator.ofType(String),
+          'font_size': JsonRendererValidator.ofType(double),
+        }),
+		`
+  })
 
   const output = `
 class JsonRenderer${title}Plugin extends JsonRendererPlugin {
@@ -47,18 +58,14 @@ class JsonRenderer${title}Plugin extends JsonRendererPlugin {
 
   @override
   JsonRendererSchema get schema => {
-        'text': JsonRendererValidator.ofType(${dType}),
-        'text_style': JsonRendererValidator.fromMap({
-          'font_style': JsonRendererValidator.ofType(String),
-          'font_size': JsonRendererValidator.ofType(double),
-        }),
+        ${schemaProcessed.join('')}
       };
 
   @override
   Widget build(BuildContext context) {
     final textStyle = params['text_style'];
     final fontStyle = textStyle?['font_style']?.toString();
-    return Text(
+    return ${title}(
       params['text']?.toString() ?? '',
       style: TextStyle(
         fontStyle: fontStyle == null ? null : enumByName(FontStyle.values, fontStyle),
@@ -68,7 +75,7 @@ class JsonRenderer${title}Plugin extends JsonRendererPlugin {
   }
 
   @override
-  String get type => 'text';
+  String get type => '${title}';
 }
 	`
 
