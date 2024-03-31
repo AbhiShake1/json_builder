@@ -4,7 +4,6 @@ import {
   integer,
   pgTableCreator,
   primaryKey,
-  serial,
   text,
   timestamp,
   varchar,
@@ -19,24 +18,34 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `json_builder_${name}`);
 
-export const posts = createTable(
-  "post",
-  {
-    id: serial("id").primaryKey(),
-    name: varchar("name", { length: 256 }),
-    createdById: varchar("createdById", { length: 255 })
-      .notNull()
-      .references(() => users.id),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updatedAt"),
-  },
-  (example) => ({
-    createdByIdIdx: index("createdById_idx").on(example.createdById),
-    nameIndex: index("name_idx").on(example.name),
-  })
-);
+export const organizations = createTable("organization", {
+  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+});
+
+export const userOrganizations = createTable("user_organization", {
+  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  userId: varchar("user", { length: 255 }).references(() => users.id),
+  organizationId: varchar("organization", { length: 255 }).references(() => organizations.id),
+});
+
+export const projects = createTable("project", {
+  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  organizationId: varchar("organization", { length: 255 }).references(() => organizations.id),
+});
+
+export const components = createTable("component", {
+  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  projectId: varchar("project", { length: 255 }).references(() => projects.id),
+});
+
+export const componentFlavors = createTable("component_flavor", {
+  id: varchar("id", { length: 255 }).notNull().primaryKey(),
+  flavorName: varchar("flavor_name", { length: 255 }).notNull(),
+  componentId: varchar("component", { length: 255 }).references(() => components.id),
+});
 
 export const users = createTable("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
