@@ -44,6 +44,23 @@ export function FlutterOutput() {
     const dType = dartType[type]
 
     if (Object.keys(primitives).includes(type)) return `'${key}': JsonRendererValidator.ofType(${dType}),`
+    // TODO(AbhiShake1): handle array
+    return `
+        'text_style': JsonRendererValidator.fromMap({
+          'font_style': JsonRendererValidator.ofType(String),
+          'font_size': JsonRendererValidator.ofType(double),
+        }),
+		`
+  })
+
+  const buildProcessed = Object.entries(properties).map(([key, value]) => {
+    const type = (value as Record<string, unknown>).type as keyof typeof dartType
+    const dType = dartType[type]
+
+    if (Object.keys(primitives).includes(type)) return `
+		${key}: params['${key}'] as ${dType}?,
+		`
+    // TODO(AbhiShake1): handle array
     return `
         'text_style': JsonRendererValidator.fromMap({
           'font_style': JsonRendererValidator.ofType(String),
@@ -66,6 +83,7 @@ class JsonRenderer${title}Plugin extends JsonRendererPlugin {
     final textStyle = params['text_style'];
     final fontStyle = textStyle?['font_style']?.toString();
     return ${title}(
+		${buildProcessed.join('')}
       params['text']?.toString() ?? '',
       style: TextStyle(
         fontStyle: fontStyle == null ? null : enumByName(FontStyle.values, fontStyle),
