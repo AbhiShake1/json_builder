@@ -3,6 +3,7 @@ import { z } from "zod";
 import { components } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { isEqual } from "lodash";
 
 export const componentRouter = createTRPCRouter({
   byId: protectedProcedure
@@ -32,6 +33,8 @@ export const componentRouter = createTRPCRouter({
           message: "Schema in server has been updated. Do you want to sync? All your local changes will be lost",
         })
       }
+
+			if(isEqual(serverSchema, schema)) return null
 
       return ctx.db.update(components)
         .set({ updatedAt: new Date(), schema })
