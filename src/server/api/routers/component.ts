@@ -34,7 +34,7 @@ export const componentRouter = createTRPCRouter({
         })
       }
 
-			if(isEqual(serverSchema, schema)) return null
+      if (isEqual(serverSchema, schema)) return null
 
       return ctx.db.update(components)
         .set({ updatedAt: new Date(), schema })
