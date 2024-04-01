@@ -3,13 +3,12 @@
 import { useSchemaStore } from "~/stores/schema"
 import { omit } from "lodash"
 
-function toTitleCase(str: string) {
-  return str.replace(
-    /\w\S*/g,
-    function (txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    }
-  );
+type UnknownRecord = Record<string, unknown>
+
+function toTitleCase(str: string): string {
+    const replacedStr = str.replace(/[-_]/g, ' ');
+    const words = replacedStr.split(' ');
+    return words.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join('');
 }
 
 const dartType = {
@@ -18,16 +17,50 @@ const dartType = {
   boolean: 'bool',
   array: 'List',
   integer: 'int',
-  number: 'num',
+  number: 'double',
   unknown: 'dynamic',
 }
 
 const primitives = omit(dartType, "object", "array", "unknown")
 
+function processSchema(properties: UnknownRecord): string[] {
+    return Object.entries(properties).map(([key, value]) => {
+        const type = (value as UnknownRecord).type as keyof typeof dartType
+        const dType = dartType[type]
+
+        if (Object.keys(primitives).includes(type)) return `'${key}': JsonRendererValidator.ofType(${dType}),`
+        // TODO(AbhiShake1): handle array
+        if(type === "array") return `handle array`
+
+        const properties = ((value as UnknownRecord | undefined)?.properties ?? {}) as UnknownRecord
+        return `
+        '${key}': JsonRendererValidator.fromMap({
+          ${processSchema(properties).join('')}
+        }),`
+    })
+}
+
+function processBuild(properties: UnknownRecord): string[] {
+    return Object.entries(properties).map(([key, value]) => {
+        const type = (value as UnknownRecord).type as keyof typeof dartType
+        const dType = dartType[type]
+
+        if (Object.keys(primitives).includes(type)) return `${key}: params['${key}'] as ${dType}?,`
+        // TODO(AbhiShake1): handle array
+
+        const val = value as UnknownRecord
+        const properties = (val.properties ?? {}) as UnknownRecord
+        return `
+        '${key}': ${toTitleCase(key)}({
+           ${processBuild(properties).join('')}
+        }),`
+    })
+}
+
 export function FlutterOutput() {
   const { schema } = useSchemaStore()
 
-  let schemaJson: Record<string, unknown>
+  let schemaJson: UnknownRecord
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
@@ -38,36 +71,10 @@ export function FlutterOutput() {
 
   const title = toTitleCase((schemaJson.title ?? "") as string)
 
-  const properties = (schemaJson.properties ?? {}) as Record<string, unknown>
-  const schemaProcessed = Object.entries(properties).map(([key, value]) => {
-    const type = (value as Record<string, unknown>).type as keyof typeof dartType
-    const dType = dartType[type]
+  const properties = (schemaJson.properties ?? {}) as UnknownRecord
+  const schemaProcessed = processSchema(properties)
 
-    if (Object.keys(primitives).includes(type)) return `'${key}': JsonRendererValidator.ofType(${dType}),`
-    // TODO(AbhiShake1): handle array
-    return `
-        'text_style': JsonRendererValidator.fromMap({
-          'font_style': JsonRendererValidator.ofType(String),
-          'font_size': JsonRendererValidator.ofType(double),
-        }),
-		`
-  })
-
-  const buildProcessed = Object.entries(properties).map(([key, value]) => {
-    const type = (value as Record<string, unknown>).type as keyof typeof dartType
-    const dType = dartType[type]
-
-    if (Object.keys(primitives).includes(type)) return `
-		${key}: params['${key}'] as ${dType}?,
-		`
-    // TODO(AbhiShake1): handle array
-    return `
-        'text_style': JsonRendererValidator.fromMap({
-          'font_style': JsonRendererValidator.ofType(String),
-          'font_size': JsonRendererValidator.ofType(double),
-        }),
-		`
-  })
+  const buildProcessed = processBuild(properties)
 
   const output = `
 class JsonRenderer${title}Plugin extends JsonRendererPlugin {
@@ -84,11 +91,6 @@ class JsonRenderer${title}Plugin extends JsonRendererPlugin {
     final fontStyle = textStyle?['font_style']?.toString();
     return ${title}(
 		${buildProcessed.join('')}
-      params['text']?.toString() ?? '',
-      style: TextStyle(
-        fontStyle: fontStyle == null ? null : enumByName(FontStyle.values, fontStyle),
-        fontSize: textStyle?['font_size'] as double?,
-      ),
     );
   }
 

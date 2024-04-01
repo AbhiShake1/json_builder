@@ -1,0 +1,5 @@
+{
+  "$schema": "./text-validator-schema.json",
+  "$id": "schema-test",
+  "type": "text"
+}
