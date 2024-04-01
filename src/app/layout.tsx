@@ -5,6 +5,8 @@ import {Inter} from "next/font/google";
 import {TRPCReactProvider} from "~/trpc/react";
 import {ThemeProvider} from "~/providers/theme";
 import {TooltipProvider} from "~/components/ui/tooltip";
+import {Toaster} from "~/components/ui/sonner";
+import React from "react";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -24,6 +26,7 @@ export default function RootLayout({children}: {
         <html lang="en">
         <ThemeProvider attribute="class" defaultTheme="dark">
             <TooltipProvider>
+                <Toaster richColors/>
                 <body className={`font-sans ${inter.variable}`}>
                 <TRPCReactProvider>{children}</TRPCReactProvider>
                 </body>
@@ -31,5 +34,4 @@ export default function RootLayout({children}: {
         </ThemeProvider>
         </html>
     )
-
 }
