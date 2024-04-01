@@ -3,6 +3,9 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "~/lib/utils"
+import { IconTruckLoading } from "@tabler/icons-react"
+import { ReloadIcon } from "@radix-ui/react-icons"
+import clsx from "clsx"
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
@@ -36,11 +39,11 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const _Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
@@ -52,6 +55,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     )
   }
 )
-Button.displayName = "Button"
+_Button.displayName = "_Button"
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps & { loading?: boolean }>(
+  ({ loading = false, disabled, children, ...props }, ref) => {
+    return <_Button {...props} ref={ref} disabled={loading || disabled}>
+      <ReloadIcon className={clsx("mr-2 animate-spin transition-all", {
+        "size-4": loading,
+        "size-0": !loading,
+      })} />
+      {children}
+    </_Button>
+  }
+)
+Button.displayName = "_Button"
 
 export { Button, buttonVariants }
