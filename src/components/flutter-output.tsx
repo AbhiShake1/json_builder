@@ -28,21 +28,25 @@ const primitives = omit(dartType, "object", "array", "unknown")
 
 function processSchema(properties: UnknownRecord): string[] {
   return Object.entries(properties).map(([key, value]) => {
-    const type = (value as UnknownRecord).type as keyof typeof dartType
+    const val = (value as UnknownRecord | undefined) ?? {}
+    const type = val.type as keyof typeof dartType
     const dType = dartType[type]
 
     // if (Object.keys(primitives).includes(type)) return `'${key}': JsonRendererValidator.ofType(${dType}),`
 
     if (Object.hasOwn(primitives, type)) {
-      return `'${key}': JsonRendererValidator.ofType(${dType}),`
+      const primCode = `'${key}': JsonRendererValidator.ofType(${dType}),`
+      // if (type === "string" && Object.hasOwn(val, "enum")) {
+      //   return `enum`
+      // }
+      return primCode
     }
 
     // TODO(AbhiShake1): handle array
     if (type === "array") return `handle array`
 
     const properties = ((value as UnknownRecord | undefined)?.properties ?? {}) as UnknownRecord
-    return `
-        '${key}': JsonRendererValidator.fromMap({
+    return `'${key}': JsonRendererValidator.fromMap({
           ${processSchema(properties).join('\n')}
         }),`
   })
@@ -50,16 +54,22 @@ function processSchema(properties: UnknownRecord): string[] {
 
 function processBuild(properties: UnknownRecord): string[] {
   return Object.entries(properties).map(([key, value]) => {
-    const type = (value as UnknownRecord).type as keyof typeof dartType
+    const val = value as UnknownRecord
+    const type = val.type as keyof typeof dartType
     const dType = dartType[type]
 
-    if (Object.keys(primitives).includes(type)) return `${key}: params['${key}'] as ${dType}?,`
+    if (Object.hasOwn(primitives, type)) {
+      const primCode = `params['${key}'] as ${dType}?`
+      if (type === "string" && Object.hasOwn(val, "enum")) {
+        return `${key}: ${toTitleCase(key)}.values.byName(${primCode}),`
+      }
+      return `${key}: ${primCode},`
+    }
+
     // TODO(AbhiShake1): handle array
 
-    const val = value as UnknownRecord
     const properties = (val.properties ?? {}) as UnknownRecord
-    return `
-        '${key}': ${toTitleCase(key)}(
+    return `'${key}': ${toTitleCase(key)}(
            ${processBuild(properties).join('\n')}
         ),`
   })
