@@ -31,7 +31,12 @@ function processSchema(properties: UnknownRecord): string[] {
     const type = (value as UnknownRecord).type as keyof typeof dartType
     const dType = dartType[type]
 
-    if (Object.keys(primitives).includes(type)) return `'${key}': JsonRendererValidator.ofType(${dType}),`
+    // if (Object.keys(primitives).includes(type)) return `'${key}': JsonRendererValidator.ofType(${dType}),`
+
+    if (Object.hasOwn(primitives, type)) {
+      return `'${key}': JsonRendererValidator.ofType(${dType}),`
+    }
+
     // TODO(AbhiShake1): handle array
     if (type === "array") return `handle array`
 
