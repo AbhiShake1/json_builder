@@ -38,6 +38,7 @@ export function JsonInput({ componentId, schema: serverSchema, serverUpdatedAt }
       toast.success("Synced with server")
     },
     onError: (e) => {
+      console.log(e)
       if (e.data?.code === "CONFLICT") {
         setOutOfSyncMsg(e.message)
       }
@@ -65,7 +66,7 @@ export function JsonInput({ componentId, schema: serverSchema, serverUpdatedAt }
     </AlertDialog>
     <div className="relative flex h-full flex-col">
       <Button variant="default" loading={syncMutation.isPending} className="absolute right-6 z-50 top-3 space-x-2" onClick={() => {
-        syncMutation.mutate({ schema, componentId, localUpdatedAt })
+        syncMutation.mutate({ schema: schema ?? "", componentId, localUpdatedAt: localUpdatedAt && new Date(localUpdatedAt.toString()) })
       }}>
         Sync
       </Button>
