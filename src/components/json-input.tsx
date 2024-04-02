@@ -58,7 +58,7 @@ export function JsonInput({ componentId, schema: serverSchema }: { componentId: 
       </AlertDialogContent>
     </AlertDialog>
     <div className="relative flex h-full flex-col">
-      <Button variant="outline" loading={syncMutation.isPending} className="absolute right-6 z-50 top-3 space-x-2" onClick={() => {
+      <Button variant="default" loading={syncMutation.isPending} className="absolute right-6 z-50 top-3 space-x-2" onClick={() => {
         syncMutation.mutate({ schema, componentId, localUpdatedAt })
       }}>
         Sync
