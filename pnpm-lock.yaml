@@ -154,9 +154,6 @@ devDependencies:
   '@typescript-eslint/parser':
     specifier: ^7.1.1
     version: 7.4.0(eslint@8.57.0)(typescript@5.4.3)
-  constrained-editor-plugin`:
-    specifier: link:@types/constrained-editor-plugin`
-    version: link:@types/constrained-editor-plugin`
   drizzle-kit:
     specifier: ^0.20.14
     version: 0.20.14
