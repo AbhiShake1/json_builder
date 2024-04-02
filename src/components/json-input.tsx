@@ -1,7 +1,7 @@
 "use client"
 
 import Editor from "@monaco-editor/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSchemaStore } from "~/stores/schema";
 import { Button } from "./ui/button";
 import { api } from "~/trpc/react";
@@ -18,11 +18,17 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export function JsonInput({ componentId, schema: serverSchema }: { componentId: number, schema: string | null }) {
+export function JsonInput({ componentId, schema: serverSchema, serverUpdatedAt }: { componentId: number, schema: string | null, serverUpdatedAt: Date | null }) {
   const router = useRouter()
   const [outOfSyncMsg, setOutOfSyncMsg] = useState<string | undefined>()
   const { schema: s, setSchema } = useSchemaStore()
-  const { schema, localUpdatedAt } = s[componentId] ?? { schema: serverSchema }
+  const { schema, localUpdatedAt } = s[componentId] ?? {}
+  useEffect(() => {
+    if (!schema) {
+      setSchema(componentId, serverSchema ?? "", serverUpdatedAt ?? undefined)
+    }
+  }, [componentId, schema, serverSchema, serverUpdatedAt])
+
   const syncMutation = api.component.sync.useMutation({
     onSuccess: (d) => {
       if (!d) return

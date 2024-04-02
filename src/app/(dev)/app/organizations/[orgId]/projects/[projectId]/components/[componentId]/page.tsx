@@ -15,7 +15,7 @@ export default async function Page({ params: { componentId: cId } }: { params: {
 
   if (!component) return notFound()
 
-  const { name, schema } = component
+  const { name, schema, updatedAt } = component
 
   return (
     <div className="grid h-screen w-full pl-[56px]">
@@ -153,7 +153,7 @@ export default async function Page({ params: { componentId: cId } }: { params: {
         <ResizablePanelGroup direction="horizontal"
           className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
           <ResizablePanel maxSize={80} minSize={30} defaultSize={60}>
-            <JsonInput componentId={componentId} schema={schema} />
+            <JsonInput componentId={componentId} schema={schema} serverUpdatedAt={updatedAt}/>
           </ResizablePanel>
           <ResizableHandle withHandle className="opacity-25"/>
           <ResizablePanel defaultSize={40}>
