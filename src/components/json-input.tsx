@@ -22,7 +22,7 @@ export function JsonInput({ componentId, schema: serverSchema }: { componentId: 
   const router = useRouter()
   const [outOfSyncMsg, setOutOfSyncMsg] = useState<string | undefined>()
   const { schema: s, setSchema } = useSchemaStore()
-  const { schema = "", localUpdatedAt } = s[componentId] ?? {}
+  const { schema, localUpdatedAt } = s[componentId] ?? { schema: serverSchema }
   const syncMutation = api.component.sync.useMutation({
     onSuccess: (d) => {
       if (!d) return
