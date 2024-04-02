@@ -15,7 +15,7 @@ export function LoginForm() {
       </header>
       <main className="flex flex-1 items-center justify-center">
         <div className="w-[400px] space-y-4">
-          <Button className="w-full" onClick={() => signIn("github")}>
+          <Button className="w-full" onClick={() => signIn("github", { callbackUrl: `/app/organizations/` })}>
             <GithubIcon className="mr-2 h-4 w-4" />
             Login with GitHub
           </Button>
