@@ -103,7 +103,7 @@ class JsonRenderer${title}Plugin extends JsonRendererPlugin {
 	`
 
   return <div
-    className="relative flex h-full min-h-[50vh] flex-col p-4 lg:col-span-2 rounded-lg border border-dashed shadow-sm">
+    className="relative flex h-full min-h-[50vh] flex-col p-4 lg:col-span-2 rounded-lg border border-dashed shadow-sm border-muted">
     <Button variant="outline" className="absolute right-3 top-3 space-x-2" onClick={async () => {
       await navigator.clipboard.writeText(output)
       toast.success('Code copied to clipboard')
