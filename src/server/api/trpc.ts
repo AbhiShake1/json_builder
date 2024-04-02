@@ -13,6 +13,11 @@ import { ZodError } from "zod";
 
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
+import {Resend} from "resend";
+import {env} from "~/env";
+
+
+const mailer = new Resend(env.RESEND_API_KEY)
 
 /**
  * 1. CONTEXT
@@ -32,6 +37,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   return {
     db,
     session,
+    mailer,
     ...opts,
   };
 };

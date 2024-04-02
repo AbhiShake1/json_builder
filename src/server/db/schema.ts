@@ -34,6 +34,7 @@ export const components = createTable("component", {
   name: varchar("name", { length: 255 }).notNull(),
   schema: text("schema"),
   updatedAt: timestamp("updated_at", { mode: "date", precision: 3 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
   projectId: serial("project").references(() => projects.id),
 });
 

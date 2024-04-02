@@ -17,6 +17,14 @@ export const componentRouter = createTRPCRouter({
   sync: protectedProcedure
     .input(z.object({ componentId: z.number(), schema: z.string(), localUpdatedAt: z.date().optional() }))
     .mutation(async ({ ctx, input: { schema, componentId, localUpdatedAt } }) => {
+        // const resp = await ctx.mailer.emails.send({
+        //     to: ["abhi9848038283@gmail.com"],
+        //     subject: "Test",
+        //     text: "abc",
+        //     from: "JsonBuilder <onboarding@resend.dev>",
+        // })
+        // console.log(resp)
+
       const serverComponent = await ctx.db.select()
         .from(components)
         .where(({ id }) => eq(id, componentId))

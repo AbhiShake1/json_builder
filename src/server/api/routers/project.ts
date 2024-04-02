@@ -21,12 +21,22 @@ export const projectRouter = createTRPCRouter({
     componentsOf: protectedProcedure
         .input(z.number())
         .query(async ({ctx, input}) => {
-            return ctx.db.select().from(components).where(({projectId}) => eq(projectId, input))
+            return ctx.db.select().from(components)
+                .where(({projectId}) => eq(projectId, input))
+                .orderBy(desc(components.updatedAt), desc(components.createdAt))
         }),
     createComponent: protectedProcedure
         .input(z.custom<Omit<typeof components.$inferInsert, "projectId"> & { projectId: number }>())
         .query(async ({ctx, input}) => {
-            return ctx.db.insert(components).values(input)
+            const schema = `{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "type": "object",
+    "properties": {
+        
+    }
+}
+            `
+            return ctx.db.insert(components).values({...input, schema})
         }),
 })
 
