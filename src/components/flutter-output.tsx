@@ -5,6 +5,8 @@ import { omit } from "lodash"
 import { Button } from "~/components/ui/button";
 import { toast } from "sonner";
 import { CopyIcon } from "@radix-ui/react-icons";
+import { codeToHtml } from 'shiki'
+import { useQuery } from "@tanstack/react-query";
 
 type UnknownRecord = Record<string, unknown>
 
@@ -43,7 +45,8 @@ function processSchema(properties: UnknownRecord): string[] {
     }
 
     // TODO(AbhiShake1): handle array
-    if (type === "array") return `handle array`
+    // if (type === "array") return `handle array`
+    if (type === "array") return ""
 
     const properties = ((value as UnknownRecord | undefined)?.properties ?? {}) as UnknownRecord
     return `'${key}': JsonRendererValidator.fromMap({
@@ -127,6 +130,11 @@ class JsonRenderer${title}Plugin extends JsonRendererPlugin {
 }
 	`
 
+  const { data: __html } = useQuery({
+    queryKey: ["code-to-html"],
+    queryFn: () => codeToHtml(output, { lang: "dart", theme: "andromeeda" }),
+  })
+
   return <div
     className="relative flex h-full min-h-[50vh] flex-col p-4 lg:col-span-2 rounded-lg border border-dashed shadow-sm border-muted">
     <Button variant="outline" className="absolute right-3 top-3 space-x-2" onClick={async () => {
@@ -136,8 +144,7 @@ class JsonRenderer${title}Plugin extends JsonRendererPlugin {
       <CopyIcon />
       <h1>Copy</h1>
     </Button>
-    <pre>
-      <code>{output}</code>
-    </pre>
+    {!__html && <>Loading...</>}
+    {!!__html && <div dangerouslySetInnerHTML={{ __html }} />}
   </div>
 }
