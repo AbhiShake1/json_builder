@@ -52,26 +52,36 @@ function processSchema(properties: UnknownRecord): string[] {
   })
 }
 
-function processBuild(properties: UnknownRecord): string[] {
+function processBuild(properties: UnknownRecord, prevKeys: string[] = []): string[] {
   return Object.entries(properties).map(([key, value]) => {
+    const nestedAccessor = [...prevKeys, key].map(k => `[${k}]`).join("?")
     const val = value as UnknownRecord
     const type = val.type as keyof typeof dartType
     const dType = dartType[type]
 
     if (Object.hasOwn(primitives, type)) {
-      const primCode = `params['${key}'] as ${dType}?`
+      const primCode = `params${nestedAccessor} as ${dType}?`
       if (type === "string" && Object.hasOwn(val, "enum")) {
-        return `${key}: ${toTitleCase(key)}.values.byName(${primCode}),`
+        return `${key}: ${toTitleCase(key)}.values.byName(${primCode} ?? ""),`
       }
       return `${key}: ${primCode},`
     }
 
-    // TODO(AbhiShake1): handle array
+    if (type === "object") {
+      const properties = (val.properties ?? {}) as UnknownRecord
+      return `${key}: ${toTitleCase(key)}(
+           ${processBuild(properties, [...prevKeys, key]).join('\n')}
+			),`
+    }
 
-    const properties = (val.properties ?? {}) as UnknownRecord
-    return `'${key}': ${toTitleCase(key)}(
-           ${processBuild(properties).join('\n')}
-        ),`
+    // TODO(AbhiShake1): handle array
+    // if (type === "array") return `${key}: [${(val.items as UnknownRecord[]).map(i => processBuild(i.properties as UnknownRecord)).join("\n")}]`
+    const items = val.items as UnknownRecord[]
+    return `${key}: [
+			for(final json in params${nestedAccessor} as List<dynamic>)
+				if(json is Map<String, dynamic>)
+					JsonRenderer(json),
+		],`
   })
 }
 
